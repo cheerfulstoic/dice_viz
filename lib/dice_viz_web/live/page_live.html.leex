@@ -1,0 +1,120 @@
+<style>
+  body {
+    font-family: 'IBM Plex Mono', sans-serif;
+  }
+
+  .line {
+    background: repeating-linear-gradient(
+      to bottom,
+      #eee,
+      #eee 1px,
+      #fff 1px,
+      #fff 8%
+    );
+  }
+  .tick {
+    background: repeating-linear-gradient(
+      to right,
+      #eee,
+      #eee 1px,
+      #fff 1px,
+      #fff 5%
+    );
+  }
+</style>
+
+
+
+<section class="phx-hero">
+
+  <div class="bg-yellow-400 p-3 rounded-xl m-5">
+    <p>This simple app allows you to simulate many rolls of dice using <a href="https://help.roll20.net/hc/en-us/articles/360037773133-Dice-Reference">Roll20's Dice Formula System</a></p>
+
+    <h1>Example formulas supported</h1>
+
+    <p>
+      <dl>
+        <dt><pre>1d6</pre></dt>
+        <dd>One side-sided die</dd>
+        <dt><pre>2d20</pre></dt>
+        <dd>Two twenty-sided dice</dd>
+        <dt><pre>3d12!</pre></dt>
+        <dd>Three twelve-sided dice rolled using the exploding dice rule</dd>
+        <dt><pre>round(2d6/3)</pre></dt>
+        <dd>What is the distribution of two six-sided dice when divided by three and rounded?</dd>
+        <dt><pre>3d12! > 4d10 - 1</pre></dt>
+        <dd>How often will three twelve-sided dice using the exploding dice rule beat four ten-sided dice minus one</dd>
+      </dl>
+    </p>
+  </div>
+
+  <form phx-change="calculate" class="bg-yellow-400 p-3 rounded-xl m-5">
+    Formula:
+    <input type="text" name="formula" value="<%= @formula %>" placeholder="Enter a dice formula" autocomplete="off" class="border-2 border-black"/>
+    Roll count (max 10,000):
+    <input type="number" name="roll_count" value="<%= @roll_count %>" min="1" max="10000" class="border-2 border-black"/>
+  </form>
+
+  <div><%= @error%></div>
+
+  <%= if @counts do %>
+    <div class="px-4">
+      <div class="max-w-lg mx-auto py-10">
+        <div class="shadow p-6 rounded-lg bg-white">
+          <div class="md:flex md:justify-between md:items-center">
+            <div>
+              <h2 class="text-xl text-gray-800 font-bold leading-tight">Distribution</h2>
+            </div>
+
+            <!-- Legends -->
+            <div class="mb-4">
+              <div class="flex items-center">
+                <div class="w-2 h-2 bg-blue-600 mr-2 rounded-full"></div>
+                <div class="text-sm text-gray-700">Percentage of time each value rolls</div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="line my-8 relative">
+            <!-- Bar Chart -->
+            <div class="flex -mx-2 items-end mb-2">
+              <%= for {value, count} <- @counts do %>
+
+                <div class="px-2 w-1/6">
+                  <div style="height: <%= round(700 * (count / @roll_count)) %>px" 
+                       class="transition ease-in duration-200 bg-blue-600 hover:bg-blue-400 relative">
+                    <div class="text-center absolute top-0 left-0 right-0 -mt-6 text-gray-800 text-sm transform -rotate-45">
+                      <%=
+                        100 * (count / @roll_count)
+                        |> Decimal.from_float()
+                        |> Decimal.round(2)
+                      %>%
+                    </div>
+                  </div>
+                </div>
+
+              <% end %>
+            </div>
+
+            <!-- Labels -->
+            <div class="border-t border-gray-400 mx-auto" style="height: 1px; width: <%= 100 - 1/length(@counts) * 100 + 3 %>%"></div>
+            <div class="flex -mx-2 items-end">
+              <%= for {value, count} <- @counts do %>
+                <div class="px-2 w-1/6">
+                  <div class="bg-red-600 relative">
+                    <div class="text-center absolute top-0 left-0 right-0 h-2 -mt-px bg-gray-400 mx-auto" style="width: 1px"></div>
+                    <div class="text-center absolute top-0 left-0 right-0 mt-3 text-gray-700 text-sm"><%= value %></div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+</section>
+
